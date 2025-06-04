@@ -1,0 +1,16 @@
+{
+    "name": "shiv/goqii",
+    "description": "Goqii Task",
+    "autoload": {
+        "psr-4": {
+            "Shiv\\Goqii\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Shivnarayan",
+            "email": "email.skanojiya@gmail.com"
+        }
+    ],
+    "require": {}
+}
