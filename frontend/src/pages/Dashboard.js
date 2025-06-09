@@ -113,10 +113,10 @@ class Dashboard extends Component {
                                 {this.state.loading ? (
                                     <span>
                                         <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Creating Account...
+                                        Adding User...
                                     </span>
                                 ) : (
-                                    "Create Account"
+                                    "Add User"
                                 )}
                             </button>
                         </div>

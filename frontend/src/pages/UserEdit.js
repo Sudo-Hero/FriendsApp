@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+
+// HOC to pass `params` and `navigate` to class component
+function withRouter(Component) {
+  return (props) => {
+    const params = useParams();
+    const navigate = useNavigate();
+    return <Component {...props} params={params} navigate={navigate} />;
+  };
+}
 
 class UserEdit extends Component {
   constructor(props) {
@@ -10,31 +19,32 @@ class UserEdit extends Component {
         name: '',
         email: '',
         dob: '',
-        avatar: ''
       },
       loading: true,
-      successMessage: ''
+      successMessage: '',
+      errorMessage: ''
     };
   }
 
   componentDidMount() {
-    // In a real app, you would fetch user data from an API
-    // using the ID from URL params (this.props.params.id)
-    const userId = this.props.params?.id;
-    
-    // Simulating API fetch with timeout
-    setTimeout(() => {
-      this.setState({
-        user: {
-          id: userId,
-          name: 'John Doe',
-          email: 'john@example.com',
-          dob: '1990-05-15',
-          avatar: 'https://i.pravatar.cc/150?img=3'
-        },
-        loading: false
+    const userId = this.props.params.id;
+
+    fetch(`http://localhost/backend/public/index.php?action=getUser&id=${userId}`, {
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          this.setState({ user: data.user, loading: false });
+        } else {
+          this.setState({ errorMessage: data.message || 'User not found', loading: false });
+        }
+      })
+      .catch(() => {
+        this.setState({ errorMessage: 'Failed to fetch user data', loading: false });
       });
-    }, 500);
   }
 
   handleInputChange = (e) => {
@@ -47,32 +57,43 @@ class UserEdit extends Component {
     }));
   };
 
-  handleSubmit = (e) => {
+  handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically make an API call to update the user
-    console.log('Updated user:', this.state.user);
-    
-    // Show success message
-    this.setState({ successMessage: 'User updated successfully!' });
-    
-    // Hide message after 3 seconds
-    setTimeout(() => {
-      this.setState({ successMessage: '' });
-    }, 3000);
+    const { user } = this.state;
+
+    try {
+      const response = await fetch(`http://localhost/backend/public/index.php?action=updateUser&id=${user.id}`, {
+        method: 'POST', // or PUT if your backend supports it
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: localStorage.getItem('token')
+        },
+        body: JSON.stringify(user)
+      });
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        this.setState({ successMessage: 'User updated successfully!', errorMessage: '' });
+        setTimeout(() => {
+          this.props.navigate(`/user/${user.id}`);
+        }, 2000);
+      } else {
+        this.setState({ errorMessage: data.message || 'Failed to update user' });
+      }
+    } catch (err) {
+      this.setState({ errorMessage: 'Failed to update user' });
+    }
   };
 
   render() {
-    const { user, loading, successMessage } = this.state;
+    const { user, loading, successMessage, errorMessage } = this.state;
 
     if (loading) {
       return (
-        <div className="container py-4">
-          <div className="text-center">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p>Loading user data...</p>
-          </div>
+        <div className="container py-4 text-center">
+          <div className="spinner-border text-primary" role="status" />
+          <p>Loading user data...</p>
         </div>
       );
     }
@@ -81,18 +102,19 @@ class UserEdit extends Component {
       <div className="container py-4">
         <div className="row justify-content-center">
           <div className="col-lg-8">
-            <Link to={`/user/${user.id}`} className="btn btn-outline-secondary mb-4">
-              ← Back to User Profile
+            <Link to={`/dashboard`} className="btn btn-outline-secondary mb-4">
+              ← Back
             </Link>
 
             <div className="card shadow-sm">
               <div className="card-body">
                 <h2 className="mb-4">Edit User</h2>
-                
+
                 {successMessage && (
-                  <div className="alert alert-success" role="alert">
-                    {successMessage}
-                  </div>
+                  <div className="alert alert-success">{successMessage}</div>
+                )}
+                {errorMessage && (
+                  <div className="alert alert-danger">{errorMessage}</div>
                 )}
 
                 <form onSubmit={this.handleSubmit}>
@@ -133,36 +155,9 @@ class UserEdit extends Component {
                       onChange={this.handleInputChange}
                     />
                   </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="avatar" className="form-label">Avatar URL</label>
-                    <input
-                      type="url"
-                      className="form-control"
-                      id="avatar"
-                      name="avatar"
-                      value={user.avatar}
-                      onChange={this.handleInputChange}
-                    />
-                    {user.avatar && (
-                      <div className="mt-2">
-                        <img 
-                          src={user.avatar} 
-                          alt="Preview" 
-                          className="img-thumbnail" 
-                          width="100"
-                        />
-                      </div>
-                    )}
-                  </div>
-
                   <div className="d-flex justify-content-between">
-                    <button type="submit" className="btn btn-primary">
-                      Save Changes
-                    </button>
-                    <Link to={`/user/${user.id}`} className="btn btn-outline-danger">
-                      Cancel
-                    </Link>
+                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                    <Link to={`/user/${user.id}`} className="btn btn-outline-danger">Cancel</Link>
                   </div>
                 </form>
               </div>
@@ -174,5 +169,4 @@ class UserEdit extends Component {
   }
 }
 
-// Wrapper component to use hooks with class component
-export default UserEdit;
+export default withRouter(UserEdit);

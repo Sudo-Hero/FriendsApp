@@ -1,30 +1,42 @@
 <?php
-// CORS headers (add this before anything else)
+// CORS headers
 header("Access-Control-Allow-Origin: http://localhost:3000");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(204); // No Content
+    http_response_code(204);
     exit();
 }
 
-// Include your controller
 require_once '../src/controllers/UserController.php';
 
-// Get action
+$controller = new UserController();
+
 $action = $_GET['action'] ?? null;
+
+// Actions that don't require authentication
+$publicActions = ['login', 'register'];
+
+if (!in_array($action, $publicActions)) {
+    // For protected actions, get and validate token
+    $headers = getallheaders();
+    $token = $headers['Authorization'] ?? '';
+
+    if (!$token || !$controller->validateToken($token)) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized or token missing']);
+        exit;
+    }
+}
 
 switch ($action) {
     case "login":
-        // Expecting JSON input
         $data = json_decode(file_get_contents('php://input'), true);
         $email = $data['email'] ?? '';
         $password = $data['password'] ?? '';
-
-        $UserController = new UserController();
-        $UserController->login($email, $password);
+        $controller->login($email, $password);
         break;
 
     case "register":
@@ -35,22 +47,53 @@ switch ($action) {
             $dob = $_POST['dob'];
             $password = $_POST['password'];
 
-            $UserController = new UserController();
-            $UserController->register($name, $email, $phone, $dob, $password);
+            $controller->register($name, $email, $phone, $dob, $password);
         }
         break;
 
-    case "getUser":
-        // Implement getUser logic here
+    case "getUsers":
+        $users = $controller->getAllUsers();
+        echo json_encode(['status' => 'success', 'users' => $users]);
         break;
 
-    case "updateUser":
-        // Implement update logic here
+    case "getUser":
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            echo json_encode(['status' => 'error', 'message' => 'User ID required']);
+            exit;
+        }
+        $user = $controller->getUserById($id); // You implement this method in UserController
+        if ($user) {
+            echo json_encode(['status' => 'success', 'user' => $user]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'User not found']);
+        }
+        exit;
+        
+    case 'updateUser':
+        $id = $_GET['id'] ?? null;
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if ($id && $data) {
+            $UserController = new UserController();
+            $UserController->updateUser($id, $data);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
+        }
         break;
+
 
     case "deleteUser":
-        // Implement delete logic here
+        $id = $_GET['id'] ?? null;
+
+        if ($id) {
+            $UserController = new UserController();
+            $UserController->deleteUser($id);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'User ID not provided']);
+        }
         break;
+
 
     default:
         http_response_code(404);
