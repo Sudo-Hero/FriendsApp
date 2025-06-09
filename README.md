@@ -61,7 +61,7 @@ The React app will run on **[http://localhost:3000](http://localhost:3000)** by 
 ---
 
 ## 🗂 Project Structure
-
+```
 FriendsApp/
 ├── backend/
 │   ├── public/
@@ -78,7 +78,7 @@ FriendsApp/
 │           ├── UserDetail.js
 │           ├── UserEdit.js
 │           └── ...
-
+```
 
 ---
 
