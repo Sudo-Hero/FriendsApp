@@ -1,12 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import PrivateRoute from './PrivateRoute'; // adjust path as needed
-import Navbar from './Navbar';
-import Footer from './Footer';
-import Home from './Home';
-import Login from './Login';
-import RegistrationPage from './RegistrationPage';
-import UserDetail from './UserDetail';
-import UserEdit from './UserEdit';
+import PrivateRoute from './components/PrivateRoute';
+import PublicRoute from './components/PublicRoute';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import RegistrationPage from './pages/RegistrationPage';
+import UserDetail from './pages/UserDetail';
+import UserEdit from './pages/UserEdit';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -15,9 +17,30 @@ function App() {
       <div className="container">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<RegistrationPage />} />
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <Home />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegistrationPage />
+              </PublicRoute>
+            }
+          />
 
           {/* Protected Routes */}
           <Route
@@ -33,6 +56,14 @@ function App() {
             element={
               <PrivateRoute>
                 <UserEdit />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
               </PrivateRoute>
             }
           />
