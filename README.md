@@ -64,20 +64,20 @@ The React app will run on **[http://localhost:3000](http://localhost:3000)** by 
 
 FriendsApp/
 ├── backend/
-│ ├── src/
-│ │ ├── config/
-│ │ │ └── DB.php
-│ │ └── controllers/
-│ │ └── UserController.php
-│ └── public/
-│ └── index.php
+│   ├── public/
+│   │   └── index.php
+│   └── src/
+│       ├── config/
+│       │   └── DB.php
+│       └── controllers/
+│           └── UserController.php
 ├── frontend/
-│ ├── public/
-│ └── src/
-│ └── components/
-│ ├── UserDetail.js
-│ ├── UserEdit.js
-│ └── ...
+│   ├── public/
+│   └── src/
+│       └── components/
+│           ├── UserDetail.js
+│           ├── UserEdit.js
+│           └── ...
 
 
 ---
