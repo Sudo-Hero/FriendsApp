@@ -89,7 +89,6 @@ FriendsApp/
 - Edit user information
 - Delete user accounts
 - Protected API routes via token validation
-- Responsive UI using Bootstrap
 
 ---
 
